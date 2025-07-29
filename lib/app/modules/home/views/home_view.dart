@@ -31,19 +31,31 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
       body: Center(
-        child: Stack(
-          children: [
-            Container(
-              width: 343.w,
-              height: 216.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.r),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/bg_sim.png'),
-                  fit: BoxFit.fill,
-                ),
+        child: Container(
+          width: 343.w,
+          height: 216.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.r),
+            image: const DecorationImage(
+              image: AssetImage('assets/images/bg_sim.png'),
+              fit: BoxFit.fill,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Obx(() {
+                  final name = controller.name.value;
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(10.r),
+                    child: Opacity(
+                      opacity: 0.2,
+                      child: CustomPaint(painter: WatermarkPainter(name)),
+                    ),
+                  );
+                }),
               ),
-              child: Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: 36.h),
@@ -223,11 +235,42 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class WatermarkPainter extends CustomPainter {
+  final String name;
+  WatermarkPainter(this.name);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final textStyle = TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+
+    const step = 80.0;
+    for (double y = -size.height; y < size.height * 2; y += step) {
+      for (double x = -size.width; x < size.width * 2; x += step) {
+        final textSpan = TextSpan(text: name, style: textStyle);
+        textPainter.text = textSpan;
+        textPainter.layout();
+
+        canvas.save();
+        canvas.translate(x, y);
+        canvas.rotate(-0.5);
+        textPainter.paint(canvas, Offset.zero);
+        canvas.restore();
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant WatermarkPainter oldDelegate) {
+    return oldDelegate.name != name;
   }
 }
 
